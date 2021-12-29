@@ -13,11 +13,16 @@ The humidity sensor and OLED display is connected via I2C
 
 Main function: provide sensor data on display and via simple HTML web page. The web page enables control one LED and display (on/off). If temperature is exceeded the second LED is lighting and web page shows warning.
 
-Himidity sensors reads data (temperature, humidity, pressure) and in defined periods these data is send via WebSocket and also shown on the OLED display
+Humidity sensors reads data (temperature, humidity, pressure) and in defined periods these data is send via WebSocket and also shown on the OLED display
 
 I use WiFi manager which allows configures WiFi via AP and it stores configured WiFi settings
 
 Data via WebSockets is send in very simple string temp|humid|press|LED_state|DISPLAY_state|WARNING_state
+
+After connection to WiFi the IP is shown on the display (after every start). On this IP address you can find data from humidity sensor:
+![image](https://user-images.githubusercontent.com/20030614/147695746-04b21c17-32c4-402f-b459-17f6cb82157a.png)
+
+# Connection schema
 
 ![image](https://user-images.githubusercontent.com/20030614/147695341-e821a6e5-b317-4f6c-8a14-0101559744de.png)
 
