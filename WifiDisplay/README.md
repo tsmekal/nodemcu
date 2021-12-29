@@ -20,7 +20,7 @@ I use WiFi manager which allows configures WiFi via AP and it stores configured 
 Data via WebSockets is send in very simple string temp|humid|press|LED_state|DISPLAY_state|WARNING_state
 
 After connection to WiFi the IP is shown on the display (after every start). On this IP address you can find data from humidity sensor:
-![image](https://user-images.githubusercontent.com/20030614/147695746-04b21c17-32c4-402f-b459-17f6cb82157a.png)
+![image](https://user-images.githubusercontent.com/20030614/147695937-387c110a-5375-40d2-bcbb-5b10753dc28e.png)
 
 # Connection schema
 
