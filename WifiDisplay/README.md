@@ -18,3 +18,6 @@ Himidity sensors reads data (temperature, humidity, pressure) and in defined per
 I use WiFi manager which allows configures WiFi via AP and it stores configured WiFi settings
 
 Data via WebSockets is send in very simple string temp|humid|press|LED_state|DISPLAY_state|WARNING_state
+
+![image](https://user-images.githubusercontent.com/20030614/147695341-e821a6e5-b317-4f6c-8a14-0101559744de.png)
+
