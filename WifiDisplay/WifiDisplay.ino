@@ -44,9 +44,9 @@ String htmlPage = R"=====(
             <div class='card px-3 py-3' id='form1'>
                <div class='row'>
                   <div class='col'>
-                     <p>Teplota: <strong><span id='temp'></span>°C</strong></p>
-                     <p>Vlhkost: <strong><span id='humid'></span>%</strong></p>
-                     <p>Tlak: <strong><span id='pres'></span>hPa</strong></p>
+                     <p>Temperature: <strong><span id='temp'></span>°C</strong></p>
+                     <p>Humidity: <strong><span id='humid'></span>%</strong></p>
+                     <p>Pressure: <strong><span id='pres'></span>hPa</strong></p>
                   </div>
                </div>
                <div class='row'>
@@ -346,9 +346,9 @@ void handleLoop(){
       webSocket.broadcastTXT(msg);
   }
   if(_canRefreshDisplay() && data_State[1] == 1){ // Update display only if time exceeded and display is turned on
-      line1 = "Teplota: " + String(data_Sensor[0]) + "C";
-      line2 = "Vlhkost: " + String(data_Sensor[1]) + "%";
-      line3 = "Tlak:    " + String(data_Sensor[2]) + "hPa";
+      line1 = "Temperature: " + String(data_Sensor[0]) + "C";
+      line2 = "Humidity:    " + String(data_Sensor[1]) + "%";
+      line3 = "Pressure:    " + String(data_Sensor[2]) + "hPa";
       line4 = "";
       displayLines();
   }
