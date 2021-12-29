@@ -185,7 +185,7 @@ int previous_Display = 0;
 
 
 // Pins for LEDs
-const int LED_meeting = 0;
+const int LED_meeting = 12;
 const int LED_warning = 14;
 
 long sensorUpdateFrequency = 800;
