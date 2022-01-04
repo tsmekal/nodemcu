@@ -1,19 +1,19 @@
 /*
 WiFiDisplay
 
-This is example how to implement three HW modules: humidity sensor, wifi, OLED display (128x32)
+This is example how to implement following HW modules: air quality sensor, humidity sensor, wifi, OLED display (128x32)
 
-The humidity sensor and OLED display is connected via I2C
+The air quality sensor, humidity sensor and OLED display is connected via I2C
 
 Main function: provide sensor data on display and via simple HTML web page. The web page enables 
 control one LED and display (on/off). If temperature is exceeded the second LED is lighting and web page shows warning.
 
-Himidity sensors reads data (temperature, humidity, pressure) and in defined periods these data 
+Data from air quality sensor (VOC index) and humidity sensor(temperature, humidity, pressure) are read in defined periods. This data 
 is send via WebSocket and also shown on the OLED display
 
 I use WiFi manager which allows configures WiFi via AP and it stores configured WiFi settings
 
-Data via WebSockets is send in very simple string temp|humid|press|LED_state|DISPLAY_state|WARNING_state
+Data via WebSockets is send in very simple string temp|humid|press|voc index|LED_state|DISPLAY_state|WARNING_state
 
 */
 
@@ -47,6 +47,7 @@ String htmlPage = R"=====(
                      <p>Temperature: <strong><span id='temp'></span>°C</strong></p>
                      <p>Humidity: <strong><span id='humid'></span>%</strong></p>
                      <p>Pressure: <strong><span id='pres'></span>hPa</strong></p>
+                     <p>Air quality: <strong><span id='air'></span></strong></p>
                   </div>
                </div>
                <div class='row'>
@@ -59,7 +60,7 @@ String htmlPage = R"=====(
                </div>
                <div class='row mt-3 mb-0' id='lblWarning'>
                   <div class='col'>
-                     <div class='alert alert-danger'>Temperature is too high!</div>
+                     <div class='alert alert-danger'>Air quality is not good!</div>
                   </div>
                </div>
             </div>
@@ -83,21 +84,22 @@ function processReceivedCommand(evt)
     document.getElementById('temp').innerHTML = tmp[0];  
     document.getElementById('humid').innerHTML = tmp[1];
     document.getElementById('pres').innerHTML = tmp[2];
+    document.getElementById('air').innerHTML = tmp[4] + " (" + tmp[3] + ")";
     // LED status
-    if(tmp[3] == 1){
+    if(tmp[5] == 1){
       document.getElementById('btnLED').innerHTML = "Turn OFF LED";
     }
     else{
       document.getElementById('btnLED').innerHTML = "Turn ON LED";
     }
     // Display status
-    if(tmp[4] == 1){
+    if(tmp[6] == 1){
       document.getElementById('btnDisplay').innerHTML = "Turn OFF display";
     }
     else{
       document.getElementById('btnDisplay').innerHTML = "Turn ON display";
     }
-    if(tmp[5] == 1){
+    if(tmp[7] == 1){
       document.getElementById('lblWarning').style.display = "block";
     }
     else{
@@ -138,6 +140,8 @@ window.onload = function(e) {
 
 #include <Adafruit_BME280.h>
 
+#include <Adafruit_SGP40.h>
+
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 32
 #define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
@@ -147,6 +151,8 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 #define BMP280_I2C_ADDRESS  0x76   // Adresa I2C senzoru
 // Humidity sensor instance
 Adafruit_BME280  bmp;
+// Air quality sensor instance
+Adafruit_SGP40 sgp;
 
 // WiFi network name
 const String wifiNetwork = "AutoConnectAP";
@@ -163,8 +169,10 @@ String line4 = "";
 0 = temperature
 1 = humidity
 2 = pressure
+3 = VOC index
+4 = air quality label
 */
-float data_Sensor[3];
+String data_Sensor[5];
 /*
 0 = LED ON/OFF
 1 = DISPLAY ON/OFF
@@ -204,12 +212,20 @@ void setup() {
 
   // Start I2C displej
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Display default address is 0x3C
-    Serial.println(F("SSD1306 alokace selhala"));
+    Serial.println(F("Could not find a valid SSD1306 sensor, check wiring!"));
+    while (1);
   }  
 
   // Start I2C sensor
   if(!bmp.begin(0x76)){  // Display default address is 0x76
     Serial.println("Could not find a valid BMP280 sensor, check wiring!");  
+    while (1);
+  }
+
+  // Start I2C air quality sensor
+  if (! sgp.begin()){
+    Serial.println("Could not find a valid SGD sensor, check wiring!");
+    while (1);
   }
 
   printStart();
@@ -336,32 +352,67 @@ void handleLoop(){
       float temperature = bmp.readTemperature();
       float humidity = bmp.readHumidity();
       float pressure = bmp.readPressure() / 100.0F;   
-      data_Sensor[0] = temperature;
-      data_Sensor[1] = humidity;
-      data_Sensor[2] = pressure;
-      handleWarning(temperature);
+      int vocIndex = _getAirQualityIndex(temperature, humidity);
+      data_Sensor[0] = String(temperature);
+      data_Sensor[1] = String(humidity);
+      data_Sensor[2] = String(pressure);
+      data_Sensor[3] = String(vocIndex);
+      data_Sensor[4] = _getAirQualityText(vocIndex);
+      handleWarning(vocIndex);
   }
   if(_canSend()){
-      String msg = String(data_Sensor[0]) + "|" + String(data_Sensor[1]) + "|" + String(data_Sensor[2]) + "|" + String(data_State[0]) + "|" + String(data_State[1]) + "|" + String(data_State[2]);
+      String msg = data_Sensor[0] + "|" + data_Sensor[1] + "|" + data_Sensor[2] + "|" + data_Sensor[3] + "|" + data_Sensor[4] + "|" + String(data_State[0]) + "|" + String(data_State[1]) + "|" + String(data_State[2]);
       webSocket.broadcastTXT(msg);
   }
   if(_canRefreshDisplay() && data_State[1] == 1){ // Update display only if time exceeded and display is turned on
-      line1 = "Temperature: " + String(data_Sensor[0]) + "C";
-      line2 = "Humidity:    " + String(data_Sensor[1]) + "%";
-      line3 = "Pressure:    " + String(data_Sensor[2]) + "hPa";
-      line4 = "";
+      line1 = "Air qlt: " + data_Sensor[4];
+      line2 = "Temperature: " + data_Sensor[0] + "C";
+      line3 = "Humidity:   " + data_Sensor[1] + "%";
+      line4 = "Pressure:   " + data_Sensor[2] + "hPa";      
       displayLines();
   }
 }
 
-void handleWarning(float value){
-  if(value < 24 || value > 28){
+void handleWarning(float airQuality){
+  if(airQuality > 150){
     digitalWrite(LED_warning, HIGH);
     data_State[2] = 1;
   }
   else{
     digitalWrite(LED_warning, LOW);
     data_State[2] = 0;
+  }
+}
+
+int32_t _getAirQualityIndex(float temperature, float humidity){  
+  return sgp.measureVocIndex(temperature, humidity);
+}
+
+String _getAirQualityText(int32_t vocIndex){
+  //https://www.breeze-technologies.de/blog/calculating-an-actionable-indoor-air-quality-index/
+  if(vocIndex == 0){
+    return "Loading";
+  }
+  else if(vocIndex > 0 && vocIndex <= 50){
+    return "Excellent";
+  }
+  else if(vocIndex > 50 && vocIndex <= 100){
+    return "Very good";
+  }
+  else if(vocIndex > 100 && vocIndex <= 150){
+    return "Good";
+  }
+  else if(vocIndex > 150 && vocIndex <= 200){
+    return "Poor";
+  }
+  else if(vocIndex > 200 && vocIndex <= 300){
+    return "Bad";
+  }
+  else if(vocIndex > 300 && vocIndex <= 500){
+    return "Horrible";
+  }
+  else{
+    return "Unknown";
   }
 }
 
