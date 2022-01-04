@@ -35,6 +35,12 @@ String htmlPage = R"=====(
     html, body{
       background-color: #ff9900
     }
+    #status{
+      position: absolute;
+      right: 8px;
+      top: 8px;
+      font-size: 0.8em;
+    }
   </style>
 </head>
 <body>
@@ -42,6 +48,7 @@ String htmlPage = R"=====(
       <div class='row d-flex justify-content-center'>
          <div class='col-md-4 col-sm-6 col-xs-12'>
             <div class='card px-3 py-3' id='form1'>
+               <span id='status'></span>
                <div class='row'>
                   <div class='col'>
                      <p>Temperature: <strong><span id='temp'></span>°C</strong></p>
@@ -71,10 +78,26 @@ String htmlPage = R"=====(
  
 <script>
 var Socket;
+var interval;
+
 function init() 
 {
   Socket = new WebSocket('ws://' + window.location.hostname + ':81/');
   Socket.onmessage = function(event) { processReceivedCommand(event); };
+
+  Socket.addEventListener('open', (event) => {  
+    document.getElementById('status').innerHTML = "Connected to server";
+    interval = null;
+  });
+  
+  Socket.addEventListener('close', (event) => {
+    console.log("disconnected");
+    document.getElementById('status').innerHTML = "Connection closed";
+    interval = setInterval(function(){
+      init();  
+    }, 5000)
+  });
+  
 }
  
 function processReceivedCommand(evt) 
@@ -196,9 +219,7 @@ int previous_Display = 0;
 const int LED_meeting = 12;
 const int LED_warning = 14;
 
-long sensorUpdateFrequency = 800;
-long timeNow = 0;
-long timePrev = 0;
+long blinkTimePrev = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -266,6 +287,19 @@ void loop() {
   }
 
   handleLoop();
+
+  if(data_State[2] == 1){
+    unsigned long currentMillis = millis();
+    if(currentMillis - blinkTimePrev >= 1000){
+      blinkTimePrev = currentMillis;
+      if(digitalRead(LED_warning) == HIGH){
+        digitalWrite(LED_warning, LOW);
+      }
+      else{
+        digitalWrite(LED_warning, HIGH);
+      }
+    }
+  }
   
 }
 
@@ -337,7 +371,6 @@ void webSocketEvent(byte num, WStype_t type, uint8_t * payload, size_t length)
     for(int i = 0; i < length; i++) { 
       incomingMsg += (char) payload[i]; 
     }
-    Serial.println(incomingMsg);
     if(incomingMsg == "LED"){
       toggleLED();
     }
@@ -375,11 +408,11 @@ void handleLoop(){
 
 void handleWarning(float airQuality){
   if(airQuality > 150){
-    digitalWrite(LED_warning, HIGH);
+    //digitalWrite(LED_warning, HIGH);
     data_State[2] = 1;
   }
   else{
-    digitalWrite(LED_warning, LOW);
+    digitalWrite(LED_warning, LOW); // To ensure that warning LED is turned off
     data_State[2] = 0;
   }
 }
@@ -417,7 +450,7 @@ String _getAirQualityText(int32_t vocIndex){
 }
 
 boolean _canRefreshSensor(){
-  timeNow = millis();
+  long timeNow = millis();
   if (timeNow - previous_Sensor >= period_SensorRefresh){
     previous_Sensor = timeNow;
     return true;
@@ -426,7 +459,7 @@ boolean _canRefreshSensor(){
 }
 
 boolean _canSend(){
-  timeNow = millis();
+  long timeNow = millis();
   if (timeNow - previous_Send >= period_Send){
     previous_Send = timeNow;
     return true;
@@ -435,7 +468,7 @@ boolean _canSend(){
 }
 
 boolean _canRefreshDisplay(){
-  timeNow = millis();
+  long timeNow = millis();
   if (timeNow - previous_Display >= period_Display){
     previous_Display = timeNow;
     return true;
