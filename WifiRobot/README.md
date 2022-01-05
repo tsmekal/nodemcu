@@ -12,3 +12,8 @@ Currently under development
 
 ## Connection
 
+Ultrasonic
+* Trig to 6
+* Echo to 5
+* VCC to VIN
+* GND to G

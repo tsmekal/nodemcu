@@ -4,12 +4,13 @@ This is example how to implement three HW modules: humidity sensor, wifi, OLED d
 
 Project HW: 
 * NodeMCU
+* SGP40 (air quality sensor)
 * BMP280 (humidity sensor)
 * OLED display (128x32)
 * two ordinary LEDs
 * two resistors for LEDs
 
-The humidity sensor and OLED display is connected via I2C
+The air quality sensor, humidity sensor and OLED display is connected via I2C
 
 Main function: provide sensor data on display and via simple HTML web page. The web page enables control one LED and display (on/off). If temperature is exceeded the second LED is lighting and web page shows warning.
 

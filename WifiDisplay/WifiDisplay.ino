@@ -107,7 +107,7 @@ function processReceivedCommand(evt)
     document.getElementById('temp').innerHTML = tmp[0];  
     document.getElementById('humid').innerHTML = tmp[1];
     document.getElementById('pres').innerHTML = tmp[2];
-    document.getElementById('air').innerHTML = tmp[4] + " (" + tmp[3] + ")";
+    document.getElementById('air').innerHTML = tmp[4] + " | VOC index: " + tmp[3];
     // LED status
     if(tmp[5] == 1){
       document.getElementById('btnLED').innerHTML = "Turn OFF LED";
@@ -398,7 +398,7 @@ void handleLoop(){
       webSocket.broadcastTXT(msg);
   }
   if(_canRefreshDisplay() && data_State[1] == 1){ // Update display only if time exceeded and display is turned on
-      line1 = "Air qlt: " + data_Sensor[4];
+      line1 = "Air: " + data_Sensor[4];
       line2 = "Temperature: " + data_Sensor[0] + "C";
       line3 = "Humidity:   " + data_Sensor[1] + "%";
       line4 = "Pressure:   " + data_Sensor[2] + "hPa";      
@@ -407,7 +407,7 @@ void handleLoop(){
 }
 
 void handleWarning(float airQuality){
-  if(airQuality > 150){
+  if(airQuality > 200){
     //digitalWrite(LED_warning, HIGH);
     data_State[2] = 1;
   }
@@ -427,22 +427,22 @@ String _getAirQualityText(int32_t vocIndex){
     return "Loading";
   }
   else if(vocIndex > 0 && vocIndex <= 50){
-    return "Excellent";
+    return "Excellent (1)";
   }
   else if(vocIndex > 50 && vocIndex <= 100){
-    return "Very good";
+    return "Very good (2)";
   }
   else if(vocIndex > 100 && vocIndex <= 150){
-    return "Good";
+    return "Good (3)";
   }
   else if(vocIndex > 150 && vocIndex <= 200){
-    return "Poor";
+    return "Fair (4)";
   }
   else if(vocIndex > 200 && vocIndex <= 300){
-    return "Bad";
+    return "Poor (5)";
   }
   else if(vocIndex > 300 && vocIndex <= 500){
-    return "Horrible";
+    return "Very bad (6)";
   }
   else{
     return "Unknown";
