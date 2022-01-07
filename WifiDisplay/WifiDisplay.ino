@@ -204,16 +204,15 @@ String data_Sensor[5];
 boolean data_State[] = {0, 1, 0};
 
 // Current time (in millis)
-int period_TimeNow = 0;
+unsigned long period_TimeNow = 0;
 // Setup of periods for tasks (in millis)
 const int period_SensorRefresh = 100;
 const int period_Send = 600;
 const int period_Display = 400;
 // Time in millis of last update
-int previous_Sensor = 0;
-int previous_Send = 0;
-int previous_Display = 0;
-
+unsigned long previous_Sensor = 0;
+unsigned long previous_Send = 0;
+unsigned long previous_Display = 0;
 
 // Pins for LEDs
 const int LED_meeting = 12;
@@ -450,7 +449,7 @@ String _getAirQualityText(int32_t vocIndex){
 }
 
 boolean _canRefreshSensor(){
-  long timeNow = millis();
+  unsigned long timeNow = millis();
   if (timeNow - previous_Sensor >= period_SensorRefresh){
     previous_Sensor = timeNow;
     return true;
@@ -459,7 +458,7 @@ boolean _canRefreshSensor(){
 }
 
 boolean _canSend(){
-  long timeNow = millis();
+  unsigned long timeNow = millis();
   if (timeNow - previous_Send >= period_Send){
     previous_Send = timeNow;
     return true;
@@ -468,7 +467,7 @@ boolean _canSend(){
 }
 
 boolean _canRefreshDisplay(){
-  long timeNow = millis();
+  unsigned long timeNow = millis();
   if (timeNow - previous_Display >= period_Display){
     previous_Display = timeNow;
     return true;
