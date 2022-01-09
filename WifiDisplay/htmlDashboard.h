@@ -90,11 +90,12 @@ function init()
 function processReceivedCommand(evt) 
 {
     var data = evt.data;
+    const obj = JSON.parse(data);
     var tmp = data.split('|');
-    document.getElementById('temp').innerHTML = tmp[0];  
-    document.getElementById('humid').innerHTML = tmp[1];
-    document.getElementById('pres').innerHTML = tmp[2];
-    document.getElementById('air').innerHTML = tmp[4] + ' | VOC index: ' + tmp[3];
+    document.getElementById('temp').innerHTML = obj.temperature;  
+    document.getElementById('humid').innerHTML = obj.humidity;
+    document.getElementById('pres').innerHTML = obj.pressure;
+    document.getElementById('air').innerHTML = obj.label + ' | VOC index: ' + obj.voc;
     // LED status
     if(tmp[5] == 1){
       document.getElementById('btnLED').innerHTML = 'Turn OFF LED';

@@ -15,6 +15,8 @@ I use WiFi manager which allows configures WiFi via AP and it stores configured 
 
 Data via WebSockets is send in very simple string temp|humid|press|voc index|LED_state|DISPLAY_state|WARNING_state
 
+Copy folder SensorData to /libraries folder
+
 */
 
 
@@ -25,6 +27,7 @@ Data via WebSockets is send in very simple string temp|humid|press|voc index|LED
 #include <ESP8266WebServer.h>
 #include <WiFiManager.h>         // https://github.com/tzapu/WiFiManager
 #include <WebSocketsServer.h>
+#include <SensorData.h>
  
 #include <Wire.h>
 #include <Adafruit_GFX.h>
@@ -47,7 +50,7 @@ Adafruit_BME280  bmp;
 Adafruit_SGP40 sgp;
 
 // WiFi network name
-const String wifiNetwork = "AutoConnectAP";
+const String wifiNetwork = "WifiSensorAP";
  
 WiFiServer server(80);
 WebSocketsServer webSocket = WebSocketsServer(81);
@@ -57,14 +60,8 @@ String line2 = "";
 String line3 = "";
 String line4 = "";
 
-/*
-0 = temperature
-1 = humidity
-2 = pressure
-3 = VOC index
-4 = air quality label
-*/
-String data_Sensor[5];
+SensorData sensorData;
+
 /*
 0 = LED ON/OFF
 1 = DISPLAY ON/OFF
@@ -258,22 +255,23 @@ void handleLoop(){
       float humidity = bmp.readHumidity();
       float pressure = bmp.readPressure() / 100.0F;   
       int vocIndex = _getAirQualityIndex(temperature, humidity);
-      data_Sensor[0] = String(temperature);
-      data_Sensor[1] = String(humidity);
-      data_Sensor[2] = String(pressure);
-      data_Sensor[3] = String(vocIndex);
-      data_Sensor[4] = _getAirQualityText(vocIndex);
+     
+      sensorData.temperature = temperature;
+      sensorData.humidity = humidity;
+      sensorData.pressure = pressure;
+      sensorData.VOC = vocIndex;
+      sensorData.label = _getAirQualityText(vocIndex);
+      
       handleWarning(vocIndex);
   }
-  if(_canSend()){
-      String msg = data_Sensor[0] + "|" + data_Sensor[1] + "|" + data_Sensor[2] + "|" + data_Sensor[3] + "|" + data_Sensor[4] + "|" + String(data_State[0]) + "|" + String(data_State[1]) + "|" + String(data_State[2]);
-      webSocket.broadcastTXT(msg);
+  if(_canSend()){            
+      webSocket.broadcastTXT(sensorData.toJson().c_str());
   }
   if(_canRefreshDisplay() && data_State[1] == 1){ // Update display only if time exceeded and display is turned on
-      line1 = "Air: " + data_Sensor[4];
-      line2 = "Temperature: " + data_Sensor[0] + "C";
-      line3 = "Humidity:   " + data_Sensor[1] + "%";
-      line4 = "Pressure:   " + data_Sensor[2] + "hPa";      
+      line1 = "Air: " + sensorData.label;
+      line2 = "Temperature: " + String(sensorData.temperature) + "C";
+      line3 = "Humidity:   " + String(sensorData.humidity) + "%";
+      line4 = "Pressure:   " + String(sensorData.pressure) + "hPa";      
       displayLines();
   }
 }

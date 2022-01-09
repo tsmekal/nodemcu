@@ -10,6 +10,11 @@ Project HW:
 * two ordinary LEDs
 * two resistors for LEDs
 
+# Installation
+
+1. Copy the folder SensorData to /libraries/
+2. Install libraries used in source code
+
 The air quality sensor, humidity sensor and OLED display is connected via I2C
 
 Main function: provide sensor data on display and via simple HTML web page. The web page enables control one LED and display (on/off). If temperature is exceeded the second LED is lighting and web page shows warning.
