@@ -97,20 +97,20 @@ function processReceivedCommand(evt)
     document.getElementById('pres').innerHTML = obj.pressure;
     document.getElementById('air').innerHTML = obj.label + ' | VOC index: ' + obj.voc;
     // LED status
-    if(tmp[5] == 1){
+    if(obj.stateLed == 1){
       document.getElementById('btnLED').innerHTML = 'Turn OFF LED';
     }
     else{
       document.getElementById('btnLED').innerHTML = 'Turn ON LED';
     }
     // Display status
-    if(tmp[6] == 1){
+    if(obj.stateDisplay == 1){
       document.getElementById('btnDisplay').innerHTML = 'Turn OFF display';
     }
     else{
       document.getElementById('btnDisplay').innerHTML = 'Turn ON display';
     }
-    if(tmp[7] == 1){
+    if(obj.stateWarning == 1){
       document.getElementById('lblWarning').style.display = 'block';
     }
     else{

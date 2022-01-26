@@ -81,7 +81,8 @@ unsigned long previous_Send = 0;
 unsigned long previous_Display = 0;
 
 // Pins for LEDs
-const int LED_meeting = 12;
+const int LED_meeting1 = 12;
+const int LED_meeting2 = 13;
 const int LED_warning = 14;
 
 unsigned blinkTimePrev = 0;
@@ -94,7 +95,8 @@ void setup() {
   Serial.begin(115200);
 
   // Setup LED
-  pinMode(LED_meeting, OUTPUT);
+  pinMode(LED_meeting1, OUTPUT);
+  pinMode(LED_meeting2, OUTPUT);
   pinMode(LED_warning, OUTPUT);
 
   // I2C start
@@ -152,7 +154,7 @@ void loop() {
 
   handleLoop();
 
-  if(data_State[2] == 1){
+  if(sensorData.stateWarning == 1){
     unsigned long currentMillis = millis();
     if(currentMillis - blinkTimePrev >= 1000){
       blinkTimePrev = currentMillis;
@@ -208,22 +210,27 @@ void printStart(void) {
 }
 
 void toggleLED(void){
-  if(data_State[0] == 0){
-    data_State[0] = 1;
+  if(sensorData.stateLed == 0){
+    //data_State[0] = 1;
+    sensorData.stateLed = 1;
   }
   else{
-    data_State[0] = 0;
+    //data_State[0] = 0;
+    sensorData.stateLed = 0;
   }
-  digitalWrite(LED_meeting, data_State[0]);
+  digitalWrite(LED_meeting1, sensorData.stateLed);
+  digitalWrite(LED_meeting2, sensorData.stateLed);
 }
 
 void toggleDisplay(void){
-  if(data_State[1] == 0){
-    data_State[1] = 1;
+  if(sensorData.stateDisplay == 0){
+    //data_State[1] = 1;
+    sensorData.stateDisplay = 1;
     display.ssd1306_command(SSD1306_DISPLAYON);
   }
   else{
-    data_State[1] = 0;
+    //data_State[1] = 0;
+    sensorData.stateDisplay = 0;
     display.ssd1306_command(SSD1306_DISPLAYOFF);
   }
 }
@@ -279,11 +286,13 @@ void handleLoop(){
 void handleWarning(float airQuality){
   if(airQuality > 200){
     //digitalWrite(LED_warning, HIGH);
-    data_State[2] = 1;
+    //data_State[2] = 1;
+    sensorData.stateWarning = 1;
   }
   else{
     digitalWrite(LED_warning, LOW); // To ensure that warning LED is turned off
-    data_State[2] = 0;
+    //data_State[2] = 0;
+    sensorData.stateWarning = 0;
   }
 }
 
