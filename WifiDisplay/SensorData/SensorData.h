@@ -12,6 +12,9 @@ class SensorData
   	float pressure;
   	float VOC;
   	String label;
+	bool stateLed;
+	bool stateDisplay;
+	bool stateWarning;
   	
   	SensorData();
     String toJson();
